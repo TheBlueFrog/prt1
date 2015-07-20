@@ -8,9 +8,8 @@ public abstract class DBInterface extends com.mike.BasicInterface
 {
 	private static final String TAG = DBInterface.class.getSimpleName();
 
-	protected static String mDBPath = "/data/fencenotification.db";
+	protected static String mDBPath = "data/history.db";
 
-	
 	protected Connection mDB = null;
 
 	public DBInterface(String[] args) 
