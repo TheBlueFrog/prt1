@@ -20,33 +20,38 @@ public class DB
 
 	/*
 	
-	Installations
-		id
-		InstallGUID
-		DisplayName
-		GCMRegistrationID
-	
-CREATE TABLE Fences
+CREATE TABLE History
     (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
-    InstallationID INTEGER, 
-    Guid TEXT, 
-    DisplayName TEXT,
- Latitude NUMBER, Longitude NUMBER, 
- Radius NUMBER, 
- Events INTEGER, 
- URI TEXT);
-	
-CREATE TABLE EventForwardings
-    (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
-    FenceID INTEGER,
-    InstallationID INTEGER,
-    IncomingEventType INTEGER
-    );
-		
-CREATE TABLE EventForwardingTargets (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, EvenForwardingID INTEGER,InstallationID INTEGER);
-	
+    ID INTEGER,
+    Blob TEXT);
+
 	*/
-	
+
+	static public List<Long> getHistoryIDs(Connection db) throws SQLException
+	{
+		PreparedStatement s = null;
+		try
+		{
+			List<Long> v = new ArrayList<Long>();
+
+			String q = "select * from History";
+			s = db.prepareStatement(q);
+			ResultSet rs = s.executeQuery();
+			while (rs.next())
+			{
+				v.add(rs.getLong(1));
+			}
+			return v;
+		}
+		finally
+		{
+			if (s != null)
+				s.close();
+		}
+	}
+
+	/////////////////////old//////////////////////////
+
 	/**
 	 * @param installGuid
 	 * @return the row ID in the Installations table of the matching GUID, -1 if none
@@ -116,28 +121,6 @@ CREATE TABLE EventForwardingTargets (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT N
 		return "";
 	}
 	
-	static public List<Long> getAllInstallationIDs(Connection db) throws SQLException
-	{
-		PreparedStatement s = null;
-		try
-		{
-			List<Long> v = new ArrayList<Long>();
-
-			String q = "select * from Installations";
-			s = db.prepareStatement(q);
-			ResultSet rs = s.executeQuery();
-			while (rs.next())
-			{
-				v.add(rs.getLong(1));
-			}
-			return v;
-		}
-		finally
-		{
-			if (s != null)
-				s.close();
-		}
-	}
 	static public List<String> getAllInstallationGuids(Connection db) throws SQLException
 	{
 		PreparedStatement s = null;

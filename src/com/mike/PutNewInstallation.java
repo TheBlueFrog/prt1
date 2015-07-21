@@ -1,9 +1,10 @@
 package com.mike;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import com.mike.geodb.DB;
-import com.mike.geodb.InstallationRecord;
+import com.mike.geodb.HistoryRecord;
 
 /**
  * add a new installation to the DB
@@ -30,12 +31,12 @@ public class PutNewInstallation extends DBInterface
 		x.process();
 	}
 	
-	public String innerProcess() throws SQLException
+	public List<HistoryRecord> innerProcess() throws SQLException
 	{		
 		long id = DB.getGuidID(mDB, mParams.get("InstallationGUID"));
 		if (id == -1)
 		{
-			InstallationRecord r = new InstallationRecord(mDB, 
+			HistoryRecord r = new HistoryRecord(mDB,
 					mParams.get("InstallationGUID"), 
 					mParams.get("DisplayName"),
 					mParams.get("GCMRegistrationID"));

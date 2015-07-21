@@ -10,7 +10,7 @@ import java.util.List;
 import org.json.JSONObject;
 
 import com.mike.abstractdb.AbstractEventForwardingRecord;
-import com.mike.abstractdb.AbstractInstallationRecord;
+import com.mike.abstractdb.AbstractHistoryRecord;
 
 /**
 	class to wrap SQLite3 table row
@@ -22,7 +22,7 @@ import com.mike.abstractdb.AbstractInstallationRecord;
 		 GCMRegistrationID TEXT);
 		 
  */
-public class InstallationRecord extends AbstractInstallationRecord 
+public class HistoryRecord extends AbstractHistoryRecord
 {
 	/**
 	 * construct and insert into DB
@@ -32,7 +32,7 @@ public class InstallationRecord extends AbstractInstallationRecord
 	 * @param displayName
 	 * @param gcmRegistrationID
 	 */
-	public InstallationRecord(Connection db, String guid, String displayName, String gcmRegistrationID)
+	public HistoryRecord(Connection db, String guid, String displayName, String gcmRegistrationID)
 	{
 		super();
 		
@@ -82,7 +82,7 @@ public class InstallationRecord extends AbstractInstallationRecord
 
 	}
 	
-	public InstallationRecord(JSONObject jsonObject)
+	public HistoryRecord(JSONObject jsonObject)
 	{
 		super (jsonObject);
 	}
@@ -92,7 +92,7 @@ public class InstallationRecord extends AbstractInstallationRecord
 	 * @param db
 	 * @param id
 	 */
-	public InstallationRecord(Connection db, Long id) 
+	public HistoryRecord(Connection db, Long id)
 	{
 		super();
 		

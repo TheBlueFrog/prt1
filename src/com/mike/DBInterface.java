@@ -1,8 +1,12 @@
 package com.mike;
 
+import com.mike.abstractdb.AbstractRecord;
+import com.mike.geodb.HistoryRecord;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
 
 public abstract class DBInterface extends com.mike.BasicInterface
 {
@@ -17,7 +21,7 @@ public abstract class DBInterface extends com.mike.BasicInterface
 		super (args);
 	}
 
-	public void process()
+	public List<? extends AbstractRecord> process()
 	{
 	    try
 	    {
@@ -27,9 +31,9 @@ public abstract class DBInterface extends com.mike.BasicInterface
 		    {
 		      mDB = DriverManager.getConnection("jdbc:sqlite:" + mDBPath);
 
-		      String s = innerProcess ();
+		      List<? extends AbstractRecord> s = innerProcess ();
 		      
-		      Log(s);
+		      return s;
 		    }
 		    catch(SQLException e)
 		    {
@@ -52,7 +56,8 @@ public abstract class DBInterface extends com.mike.BasicInterface
 		{
 			e1.printStackTrace(System.out);
 		}
+		return null;
 	}
 	
-	abstract String innerProcess () throws SQLException;
+	abstract List<HistoryRecord> innerProcess() throws SQLException;
 }

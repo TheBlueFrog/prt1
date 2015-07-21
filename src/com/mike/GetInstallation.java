@@ -1,9 +1,10 @@
 package com.mike;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import com.mike.geodb.DB;
-import com.mike.geodb.InstallationRecord;
+import com.mike.geodb.HistoryRecord;
 
 /**
  * retrieve a named installation
@@ -26,18 +27,18 @@ public class GetInstallation extends DBInterface
 		x.process();
 	}
 	
-	public String innerProcess() throws SQLException
+	public List<HistoryRecord> innerProcess() throws SQLException
 	{
 		String installGuid = mParams.get("InstallationGUID");
-		InstallationRecord out = null;
+		HistoryRecord out = null;
 
 		long id = DB.getGuidID(mDB, installGuid);
 
-//		List<Long> v = DB.getAllInstallationIDs(mDB);
+//		List<Long> v = DB.getHistoryIDs(mDB);
 //		for (Long id : v) 
 		if (id >= 0)
 		{
-			InstallationRecord r = new InstallationRecord(mDB, id);
+			HistoryRecord r = new HistoryRecord(mDB, id);
 			if (r.mGuid.equals(installGuid))
 			{
 				out = r;

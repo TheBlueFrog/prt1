@@ -1,10 +1,11 @@
 package com.mike;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import com.mike.geodb.DB;
 import com.mike.geodb.EventForwardingRecord;
-import com.mike.geodb.InstallationRecord;
+import com.mike.geodb.HistoryRecord;
 
 /**
  * add a new fence to an installation
@@ -22,7 +23,7 @@ public class PutNewEventForwarding extends DBInterface
 	 *  This does not set any targets for the forwarding, use the AddEventForwardingTarget API
 	 *  to do that
 	 *  
-	 *  returns updated InstallationRecord
+	 *  returns updated HistoryRecord
 	 */
 	
 	public PutNewEventForwarding(String[] args) 
@@ -36,11 +37,11 @@ public class PutNewEventForwarding extends DBInterface
 		x.process();
 	}
 	
-	public String innerProcess() throws SQLException
+	public List<HistoryRecord> innerProcess() throws SQLException
 	{
 		long installID = DB.getGuidID(mDB, mParams.get("InstallationGUID"));
 		
-		InstallationRecord install = new InstallationRecord(mDB, installID);
+		HistoryRecord install = new HistoryRecord(mDB, installID);
 		
 		install.addForwarding(new EventForwardingRecord(mDB, 
 				installID,

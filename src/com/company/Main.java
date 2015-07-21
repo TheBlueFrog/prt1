@@ -1,6 +1,7 @@
 package com.company;
 
-import com.mike.GetInstallations;
+import com.mike.GetHistory;
+import com.mike.abstractdb.AbstractRecord;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +35,13 @@ public class Main {
 //                    && p.getAge() >= 18
 //                    && p.getAge() <= 25);
 
-        GetInstallations x = new GetInstallations(args);
-        x.process();
+        List<? extends AbstractRecord> worldHistory = new GetHistory(args).process();
+
+        List<? extends Thing> things = worldHistory.getThings ();
+
+        // start time ticking
+        while (1)
+            things.forEach();
     }
 
     private static List<Mover> movers = new ArrayList<Mover>();

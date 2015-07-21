@@ -1,10 +1,11 @@
 package com.mike;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import com.mike.geodb.DB;
 import com.mike.geodb.FenceRecord;
-import com.mike.geodb.InstallationRecord;
+import com.mike.geodb.HistoryRecord;
 
 /**
  * add a new fence to an installation
@@ -23,7 +24,7 @@ public class PutNewFence extends DBInterface
 	 *  "Events"			enter and/or leave
 	 *  "URI"				URL app can use?
 	 *  
-	 *  returns updated InstallationRecord
+	 *  returns updated HistoryRecord
 	 */
 	
 	public PutNewFence(String[] args) 
@@ -37,10 +38,10 @@ public class PutNewFence extends DBInterface
 		x.process();
 	}
 	
-	public String innerProcess() throws SQLException
+	public List<HistoryRecord> innerProcess() throws SQLException
 	{
 		long id = DB.getGuidID(mDB, mParams.get("InstallationGUID"));
-		InstallationRecord install = new InstallationRecord(mDB, id);
+		HistoryRecord install = new HistoryRecord(mDB, id);
 		
 		install.addFence(new FenceRecord(mDB, 
 				install.mGuid,
