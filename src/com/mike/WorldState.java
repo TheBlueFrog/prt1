@@ -2,8 +2,6 @@ package com.mike;
 
 import com.company.Log;
 import com.company.Thing;
-import com.mike.util.*;
-import com.mike.util.Error;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,7 +19,9 @@ import java.util.List;
  * (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
  * tick INTEGER);
  */
-public class WorldState {
+public class WorldState extends MyJSON {
+
+    static private final String TAG = WorldState.class.getSimpleName();
 
     // db record ID
     private long id = -1;
@@ -30,22 +30,27 @@ public class WorldState {
     private long tick = 0;
 
     // things in the world
-    private List<Thing> things;
+    private List<Thing> things = new ArrayList<>();
 
     public List<Thing> getThings() {
         return things;
     }
+    public WorldState(JSONObject j) throws JSONException {
+        super(j);
+    }
+
 
     // recover our state from the DB
     public WorldState(Connection db) {
+        super();
 
         // assume one, and only one in DB
-        things = new ArrayList<>();
 
         PreparedStatement s = null;
         try {
 //            String q = String.format("select * from WorldState where (_id = %d) order by _id DESC limit 1", id);
-            String q = String.format("select * from WorldState order by _id DESC limit 1");
+            // find newest one
+            String q = String.format("select * from %s order by _id DESC limit 1", TAG);
             s = db.prepareStatement(q);
             ResultSet rs = s.executeQuery();
             if (rs.next()) {
@@ -54,10 +59,11 @@ public class WorldState {
             } else {
                 materializeWorld(db);
 //                throw new IllegalStateException("Failed to load or create record, _id: " + id);
-
-                testJson();
             }
-        } catch (SQLException e) {
+
+            unitTest();
+        }
+        catch (SQLException e) {
                 e.printStackTrace(System.out);
         } finally {
             if (s != null)
@@ -79,14 +85,14 @@ public class WorldState {
             xferToDB(db);
 
             // look for it
-            String q = String.format("select _id from WorldState order by _id DESC limit 1");
+            String q = String.format("select _id from %s order by _id DESC limit 1", TAG);
             s = db.prepareStatement(q);
             ResultSet rs = s.executeQuery();
             if (rs.next()) {
                 xferFromDB (rs);
                 return;
             } else
-                throw new IllegalStateException("Failed to insert and recover _id");
+                throw new IllegalStateException(String.format("Failed to insert and recover _id table %s", TAG));
         } finally {
             if (s != null)
                 try {
@@ -110,12 +116,16 @@ public class WorldState {
     // write ourself out to the DB
     private void xferToDB(Connection db) throws SQLException {
         PreparedStatement s = null;
-        String q = String.format("insert into WorldState (tick) values (%d)",
+        String q = String.format("insert into %s (tick) values (%d)",
+                TAG,
                 tick);
-
         s = db.prepareStatement(q);
         s.executeUpdate();
         s.close();
+    }
+
+    private void unitTest() {
+        testJson();
     }
 
     private void testJson() {
@@ -123,43 +133,19 @@ public class WorldState {
         WorldState w = new WorldState(j);
 
         if ( ! ((id == w.id) && (tick == w.tick)))
-            Log.e("WorldState JSON error");
+            Log.e(String.format("%s JSON error", TAG));
     }
 
-    @Override
-    public String toString()
-    {
-        return toJSON().toString();
-    }
 
-    public WorldState(JSONObject j) throws JSONException
-    {
+    protected void fromJSON(JSONObject j) {
         id = j.getLong("id");
         tick = j.getLong("tick");
     }
-
-    public JSONObject toJSON()
-    {
-        JSONObject j = new JSONObject();
-        try
-        {
-            j.put("id", id);
-            j.put("tick", tick);
-
-            String jsonText = j.toString();
-        }
-        catch (JSONException e)
-        {
-            try
-            {
-                j.put("Error", new com.mike.util.Error("", e.getClass().getSimpleName(), e.getMessage()));
-            }
-            catch (JSONException e1)
-            {
-                e1.printStackTrace();
-            }
-        }
-        return j;
+    protected void toJSON(JSONObject j) {
+        j.put("id", id);
+        j.put("tick", tick);
     }
+
+
 
 }

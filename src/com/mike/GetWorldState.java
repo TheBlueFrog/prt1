@@ -14,12 +14,6 @@ public class GetWorldState extends DBInterface2<WorldState>
         super(args);
     }
 
-//	public static void main(String[] args)
-//	{
-//		GetHistory x = new GetHistory(args);
-//		x.process();
-//	}
-
     List<WorldState> innerProcess() throws SQLException
     {
         List<WorldState> list = new ArrayList<>();
@@ -29,10 +23,11 @@ public class GetWorldState extends DBInterface2<WorldState>
             WorldState r = new WorldState(mDB);
 
             list.add(r);
-
-//			if (r.mFences.size() == 0)
-//				r.addFence (new FenceRecord(mDB, i, "testFence", -122.6, 45.3, 101.1, 3, "a fence url"));
         }
+
+        return list;
+    }
+}
 
 //		{	// TEST code
 //			JSONTokener parser = new JSONTokener(list.toString());
@@ -52,7 +47,4 @@ public class GetWorldState extends DBInterface2<WorldState>
 ////			}
 //		}
 
-        return list;
-    }
-}
 
