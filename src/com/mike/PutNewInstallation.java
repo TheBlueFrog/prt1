@@ -41,11 +41,11 @@ public class PutNewInstallation extends DBInterface
 					mParams.get("DisplayName"),
 					mParams.get("GCMRegistrationID"));
 	
-			return r.toString();
+			return null;//r.toString();
 		}
 		else
 		{
-			return "Error, InstallationGUID exists " + mParams.get("InstallationGUID");
+			return null;//"Error, InstallationGUID exists " + mParams.get("InstallationGUID");
 		}
 	}
 	
