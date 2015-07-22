@@ -1,4 +1,4 @@
-package com.mike.abstractdb;
+package com.mike.util;
 
 import org.json.JSONObject;
 

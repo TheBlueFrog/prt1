@@ -1,13 +1,10 @@
 package com.company;
 
 import com.mike.GetWorldState;
-import com.mike.geodb.HistoryRecord;
-import com.mike.geodb.WorldState;
+import com.mike.WorldState;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public class Main {
 

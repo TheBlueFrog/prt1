@@ -1,7 +1,9 @@
-package com.mike.geodb;
+package com.mike;
 
+import com.company.Log;
 import com.company.Thing;
-import com.mike.abstractdb.*;
+import com.mike.util.*;
+import com.mike.util.Error;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -36,23 +38,27 @@ public class WorldState {
 
     // recover our state from the DB
     public WorldState(Connection db) {
+
         // assume one, and only one in DB
         things = new ArrayList<>();
 
         PreparedStatement s = null;
         try {
-            String q = String.format("select * from WorldState where (_id = %d) order by _id DESC limit 1", id);
+//            String q = String.format("select * from WorldState where (_id = %d) order by _id DESC limit 1", id);
+            String q = String.format("select * from WorldState order by _id DESC limit 1");
             s = db.prepareStatement(q);
             ResultSet rs = s.executeQuery();
             if (rs.next()) {
                 // xfer data
                 tick = rs.getLong(1);
             } else {
-                juJuIfNoWorld(db);
+                materializeWorld(db);
 //                throw new IllegalStateException("Failed to load or create record, _id: " + id);
+
+                testJson();
             }
         } catch (SQLException e) {
-            e.printStackTrace(System.out);
+                e.printStackTrace(System.out);
         } finally {
             if (s != null)
                 try {
@@ -63,15 +69,14 @@ public class WorldState {
         }
     }
 
-    // do the juju to materialize a new world, or throw something
-    private void juJuIfNoWorld(Connection db) throws SQLException {
+    private void materializeWorld(Connection db) throws SQLException {
         PreparedStatement s = null;
         try {
+            // setup world values
             id = -1;
+            things = defaultThings();
 
-            List<String> v = new ArrayList<String>();
-
-            putDefaultWorld(db, 0, defaultThings ());
+            xferToDB(db);
 
             // look for it
             String q = String.format("select _id from WorldState order by _id DESC limit 1");
@@ -102,15 +107,24 @@ public class WorldState {
         tick = rs.getLong(1);
     }
 
-    private void putDefaultWorld(Connection db, long tick, List<Thing> things) throws SQLException {
+    // write ourself out to the DB
+    private void xferToDB(Connection db) throws SQLException {
         PreparedStatement s = null;
-        String q = String.format("insert into WorldState (tick) values (%d)", tick);
+        String q = String.format("insert into WorldState (tick) values (%d)",
+                tick);
 
         s = db.prepareStatement(q);
         s.executeUpdate();
         s.close();
     }
 
+    private void testJson() {
+        JSONObject j = toJSON();
+        WorldState w = new WorldState(j);
+
+        if ( ! ((id == w.id) && (tick == w.tick)))
+            Log.e("WorldState JSON error");
+    }
 
     @Override
     public String toString()
@@ -138,7 +152,7 @@ public class WorldState {
         {
             try
             {
-                j.put("Error", new com.mike.abstractdb.Error("", e.getClass().getSimpleName(), e.getMessage()));
+                j.put("Error", new com.mike.util.Error("", e.getClass().getSimpleName(), e.getMessage()));
             }
             catch (JSONException e1)
             {

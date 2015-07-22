@@ -69,7 +69,7 @@ public class AbstractEventForwardingRecord extends AbstractRecord
 		{
 			try
 			{
-				j.put("Error", new Error ("", e.getClass().getSimpleName(), e.getMessage()));
+				j.put("Error", new com.mike.util.Error("", e.getClass().getSimpleName(), e.getMessage()));
 			}
 			catch (JSONException e1)
 			{
