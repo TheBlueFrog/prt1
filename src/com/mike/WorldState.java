@@ -41,65 +41,31 @@ public class WorldState extends MyJSON {
 
 
     // recover our state from the DB
-    public WorldState(Connection db) {
+    public WorldState(Connection db) throws SQLException {
         super();
 
-        // assume one, and only one in DB
-
-        PreparedStatement s = null;
         try {
-//            String q = String.format("select * from WorldState where (_id = %d) order by _id DESC limit 1", id);
-            // find newest one
-            String q = String.format("select * from %s order by _id DESC limit 1", TAG);
-            s = db.prepareStatement(q);
-            ResultSet rs = s.executeQuery();
-            if (rs.next()) {
-                // xfer data
-                tick = rs.getLong(1);
-            } else {
-                materializeWorld(db);
-//                throw new IllegalStateException("Failed to load or create record, _id: " + id);
-            }
+            readLast(db);
 
             unitTest();
-        }
-        catch (SQLException e) {
-                e.printStackTrace(System.out);
-        } finally {
-            if (s != null)
-                try {
-                    s.close();
-                } catch (SQLException e) {
-                    e.printStackTrace(System.out);
-                }
+        } catch (SQLException | IllegalStateException e) {
+            insertNewWorld(db);
         }
     }
 
-    private void materializeWorld(Connection db) throws SQLException {
+    private void insertNewWorld(Connection db) throws SQLException {
         PreparedStatement s = null;
         try {
             // setup world values
             id = -1;
             things = defaultThings();
 
-            xferToDB(db);
+            insert(db);
 
-            // look for it
-            String q = String.format("select _id from %s order by _id DESC limit 1", TAG);
-            s = db.prepareStatement(q);
-            ResultSet rs = s.executeQuery();
-            if (rs.next()) {
-                xferFromDB (rs);
-                return;
-            } else
-                throw new IllegalStateException(String.format("Failed to insert and recover _id table %s", TAG));
+            // load it
+            readLast(db);
         } finally {
-            if (s != null)
-                try {
-                    s.close();
-                } catch (SQLException e) {
-                    e.printStackTrace(System.out);
-                }
+            cleanup(s);
         }
     }
 
@@ -109,19 +75,50 @@ public class WorldState extends MyJSON {
         return list;
     }
 
-    private void xferFromDB(ResultSet rs) throws SQLException {
+    // put ourself out to the DB
+    private void insert(Connection db) throws SQLException {
+        PreparedStatement s = null;
+        try {
+            String q = String.format("insert into %s (tick) values (%d)",
+                    TAG,
+                    tick);
+            s = db.prepareStatement(q);
+            s.executeUpdate();
+            s.close();
+        } finally {
+            cleanup(s);
+        }
+    }
+
+    private void cleanup(PreparedStatement s) {
+        if (s != null)
+            try {
+                s.close();
+            } catch (SQLException e) {
+                e.printStackTrace(System.out);
+            }
+    }
+
+    private void read(ResultSet rs) throws SQLException {
         tick = rs.getLong(1);
     }
 
-    // write ourself out to the DB
-    private void xferToDB(Connection db) throws SQLException {
+    private boolean readLast(Connection db) throws SQLException {
         PreparedStatement s = null;
-        String q = String.format("insert into %s (tick) values (%d)",
-                TAG,
-                tick);
-        s = db.prepareStatement(q);
-        s.executeUpdate();
-        s.close();
+        try {
+            String q = String.format("select _id from %s order by _id DESC limit 1", TAG);
+            s = db.prepareStatement(q);
+            ResultSet rs = s.executeQuery();
+            if (rs.next()) {
+                read(rs);
+                return true;
+            }
+        } finally {
+            cleanup(s);
+        }
+
+        throw new IllegalStateException(String.format("Failed to read last record from table %s", TAG));
+//        return false;
     }
 
     private void unitTest() {
