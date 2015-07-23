@@ -7,6 +7,14 @@ import java.time.LocalDate;
  */
 public class Person {
 
+    public String getName() {
+        return name;
+    }
+
+    public LocalDate getBirthday() {
+        return birthday;
+    }
+
     public enum Sex {
         MALE, FEMALE
     }
