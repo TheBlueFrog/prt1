@@ -27,6 +27,10 @@ public class WorldState extends MyJSON {
     static private final String TAG = WorldState.class.getSimpleName();
     private final String tableName = "WorldState";
 
+    private static WorldState ourself = null;
+    public static long getTick () {
+        return ourself.tick;
+    }
     // db record ID
     private long id = -1;
 
@@ -41,11 +45,13 @@ public class WorldState extends MyJSON {
     }
     public WorldState(JSONObject j) throws JSONException {
         super(j);
+        ourself = this;
     }
 
     // recover our state from the DB
     public WorldState(Connection db) throws SQLException {
         super();
+        ourself = this;
 
         try {
             // load latest one in DB or setup a new DB
@@ -62,7 +68,7 @@ public class WorldState extends MyJSON {
         try {
             // setup world values
             id = -1;
-            things = defaultThings();
+            things = Thing.defaultThings();
 
             insert(db);
 
@@ -73,17 +79,15 @@ public class WorldState extends MyJSON {
         }
     }
 
-    private List<Thing> defaultThings() {
-        List<Thing> list = new ArrayList<>();
-//        list.sort();
-        list.add(new Thing());
-        return list;
+    void cb (ResultSet rs) throws SQLException {
+        dbToField(rs);
     }
 
     private void insert(Connection db) throws SQLException {
         SQL.insert(db, String.format("insert into %s (tick) values (%d)",
                 TAG,
                 tick));
+        things.forEach(t -> t.insert(db, id, WorldState::dbToField));
     }
 
     /**
@@ -104,7 +108,7 @@ public class WorldState extends MyJSON {
         JSONObject j = toJSON();
         WorldState w = new WorldState(j);
 
-        if ( ! ((id == w.id) && (tick == w.tick)))
+        if ( ! ((id == w.id) ))// new world has current time... && (tick == w.tick)))
             Log.e(String.format("%s JSON error", TAG));
     }
 

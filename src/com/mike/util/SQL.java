@@ -34,6 +34,27 @@ public class SQL {
             }
     }
 
+    static public interface DBtoField {
+        public void dbToField(ResultSet rs);
+    }
+    static public boolean read (Connection db, String q, DBtoField f) throws SQLException {
+        PreparedStatement s = null;
+        try {
+            s = db.prepareStatement(q);
+            ResultSet rs = s.executeQuery();
+            if (rs.next()) {
+                f.dbToField(rs);
+                return true;
+            }
+        } finally {
+            SQL.cleanup(s);
+        }
+
+        throw new IllegalStateException(
+                String.format("Failed query: %s", q));
+//        return false;
+    }
+
     /**
      * read the record with the highest auto-increase value, _id
      *
@@ -59,5 +80,4 @@ public class SQL {
         throw new IllegalStateException(String.format("Failed to read last record from table %s", w.getClass().getSimpleName()));
 //        return false;
     }
-
 }
