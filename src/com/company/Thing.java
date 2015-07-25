@@ -13,41 +13,51 @@ import java.util.List;
 
 /**
  * Created by mike on 7/20/2015.
+ * <p>
+ *  CREATE TABLE Thing
+ *      (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+ *      ownerID INTEGER,
+ *      born INTEGER
+ *  );
  */
 public class Thing {
     static private final String TAG = Thing.class.getSimpleName();
-    private final String tableName = "Thing";
+    static private final String tableName = "Thing";
 
-
+    private long born = 0;
     private PhysicalObject phyisical;
 
-    static public List<Thing> defaultThings() {
+    static public List<Thing> defaultThings(long ownerID) {
         List<Thing> list = new ArrayList<>();
 //        list.sort();
-        list.add(new Thing());
+        list.add(new Thing(ownerID));
         return list;
     }
 
+    public Thing (long ownerID) {
+        born = WorldState.getTick ();
 
-    long born = 0;
+        setPhysics(0, 0, 0, 0);
+    }
+    public Thing (ResultSet rs) throws SQLException {
+        dbToField(rs);
+    }
 
     public long getAge() {
         return WorldState.getTick() - born;
     }
 
-    public Thing () {
-        born = WorldState.getTick ();
-
-        setPhysics(0, 0, 0, 0);
-    }
-
-    public Thing (Connection db, long ownerID) throws SQLException {
-        String q = String.format("select * from %s where ( ownerID = %d", tableName, ownerID);
-     //   SQL.read(db, q, this::dbToField);
+    static public void loadThings (Connection db, WorldState w) throws SQLException {
+        String q = String.format("select * from %s where ( ownerID = %d", tableName, w.getID());
+        SQL.read(db, q, Thing::constructFromDB);
     }
 
     public void dbToField(ResultSet rs) throws SQLException {
         born = ((ResultSet) rs).getLong(1);
+    }
+
+    static public void constructFromDB(ResultSet rs) throws SQLException {
+        Thing t = new Thing (rs);
     }
 
     private void setPhysics(double position, double velocity, double acceleration, double mass) {
@@ -56,7 +66,6 @@ public class Thing {
 
     public void tick() {
         try {
-            SQL.read(null, null, this::dbToField);
             phyisical.integrate(1, 11.1);
         }
         catch (Exception e) {
@@ -74,19 +83,24 @@ public class Thing {
     }
 
     /**
-     * insert a new Thing into the DB given the owner
+     * insert a Thing in the DB
      *
      * @param db
-     * @param ownerID
+     * @param parentID should be the owning WorldState...
+     * @param dbToField
      * @throws SQLException
      */
-    public void insert(Connection db, long ownerID) throws SQLException {
-        SQL.insert(db, String.format("insert into %s (ownerID, born) values (%d, %d)",
+    public void insert(Connection db, long parentID, SQL.DBtoField dbToField) throws SQLException {
+        String q = String.format("insert into %s (ownerID, born) values (%d, %d)",
                 tableName,
-                ownerID,
-                born));
+                parentID,
+                WorldState.getTick());
+        SQL.insert(db, q, this::dbToField);
     }
 
-    public void insert(Connection db, long id, SQL.DBtoField dbToField) {
+    public static void insert(Connection db, long parentID, List<Thing> things) throws SQLException {
+        for (Thing t : things) {
+                t.insert(db, parentID, t::dbToField);
+            }
     }
 }

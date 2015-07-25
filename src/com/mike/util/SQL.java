@@ -14,7 +14,17 @@ public class SQL {
 
     private static final String TAG = SQL.class.getSimpleName();
 
-    static public void insert (Connection db, String q) throws SQLException {
+    static public void cleanup(PreparedStatement s) {
+        if (s != null)
+            try {
+                s.close();
+            } catch (SQLException e) {
+                e.printStackTrace(System.out);
+            }
+    }
+
+
+    public static void insert(Connection db, String q, DBtoField dbToField) throws SQLException {
         PreparedStatement s = null;
         try {
             s = db.prepareStatement(q);
@@ -25,25 +35,46 @@ public class SQL {
         }
     }
 
-    static public void cleanup(PreparedStatement s) {
-        if (s != null)
-            try {
-                s.close();
-            } catch (SQLException e) {
-                e.printStackTrace(System.out);
-            }
+    /**
+     * interface to let common code move DB data into an object
+     */
+    static public interface DBtoField {
+        /**
+         * implementers will be called when a ResultSet is available
+         * and asked to update the corresponding in-memory object
+         *
+         * @param rs
+         * @throws SQLException
+         */
+        public void dbToField(ResultSet rs) throws SQLException;
+    }
+    /**
+     * interface to construct a new object from data in the DB
+     */
+    static public interface constructfromDB {
+        /**
+         *
+         * @param rs
+         * @throws SQLException
+         */
+        public void construct(ResultSet rs) throws SQLException;
     }
 
-    static public interface DBtoField {
-        public void dbToField(ResultSet rs);
-    }
-    static public boolean read (Connection db, String q, DBtoField f) throws SQLException {
+    /**
+     *
+     * @param db
+     * @param q query string to fetch a set of objects
+     * @param f function to call to update each object
+     * @return crap @TODO fix
+     * @throws SQLException
+     */
+    static public boolean read (Connection db, String q, constructfromDB f) throws SQLException {
         PreparedStatement s = null;
         try {
             s = db.prepareStatement(q);
             ResultSet rs = s.executeQuery();
             if (rs.next()) {
-                f.dbToField(rs);
+                f.construct(rs);
                 return true;
             }
         } finally {
@@ -59,25 +90,26 @@ public class SQL {
      * read the record with the highest auto-increase value, _id
      *
      * @param db
-     * @param w
      * @return
      * @throws SQLException
      */
-    static public boolean readLast(Connection db, WorldState w) throws SQLException {
+    static public boolean readLast(Connection db, String tableName, constructfromDB c) throws SQLException {
         PreparedStatement s = null;
         try {
-            String q = String.format("select _id from %s order by _id DESC limit 1", w.getClass().getSimpleName());
+            String q = String.format("select _id, tick from %s order by _id DESC limit 1",
+                    tableName);
             s = db.prepareStatement(q);
             ResultSet rs = s.executeQuery();
             if (rs.next()) {
-                w.dbToField(rs);
+                c.construct(rs);
                 return true;
             }
         } finally {
             SQL.cleanup(s);
         }
 
-        throw new IllegalStateException(String.format("Failed to read last record from table %s", w.getClass().getSimpleName()));
+        throw new IllegalStateException(String.format("Failed to read last record from table %s", tableName));
 //        return false;
     }
+
 }

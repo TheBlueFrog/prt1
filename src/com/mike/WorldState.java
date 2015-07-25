@@ -25,14 +25,14 @@ import static com.mike.util.SQL.readLast;
 public class WorldState extends MyJSON {
 
     static private final String TAG = WorldState.class.getSimpleName();
-    private final String tableName = "WorldState";
+    static private final String tableName = "WorldState";
 
     private static WorldState ourself = null;
     public static long getTick () {
         return ourself.tick;
     }
     // db record ID
-    private long id = -1;
+    private long id = 0;
 
     // world clock
     public long tick = 0;
@@ -49,45 +49,58 @@ public class WorldState extends MyJSON {
     }
 
     // recover our state from the DB
-    public WorldState(Connection db) throws SQLException {
-        super();
-        ourself = this;
-
+    static public void start(Connection db) throws SQLException {
         try {
             // load latest one in DB or setup a new DB
-            SQL.readLast(db, this);
-
-            unitTest();
+            SQL.readLast(db, tableName, WorldState::constructFromDB);
+            ourself.unitTest();
         } catch (SQLException | IllegalStateException e) {
-            insertNewWorld(db);
+            WorldState.insertNewWorld(db);
         }
+
+//        xxxxxxxxxxxx
+//        super();
+//        ourself = this;
     }
 
-    private void insertNewWorld(Connection db) throws SQLException {
+    private void load(Connection db) {
+//        String q = String.format("insert into %s (tick) values (%d)",
+//                TAG,
+////                id,
+//                tick);
+//
+//        SQL.insert(db, q, this::dbToField);
+//
+//        Thing.insert(db, id, things);
+
+    }
+
+    static private void insertNewWorld(Connection db) throws SQLException {
         PreparedStatement s = null;
         try {
             // setup world values
-            id = -1;
-            things = Thing.defaultThings();
+//            id = -1;
+//            insert(db);
 
-            insert(db);
+            // load latest one in DB, this gets the correct id set since
+            // it's autonumber
+            readLast(db, tableName, WorldState::constructFromDB);
 
-            // load latest one in DB
-            readLast(db, this);
+            // put default things in DB
+//            Thing.insert(db, id, Thing.defaultThings(id));
+
+            // and reload one more time
+            readLast(db, tableName, WorldState::constructFromDB);
         } finally {
             SQL.cleanup(s);
         }
     }
 
-    void cb (ResultSet rs) throws SQLException {
-        dbToField(rs);
+    private static void constructFromDB(ResultSet rs) {
+//        ourself = new WorldState(rs);
     }
 
-    private void insert(Connection db) throws SQLException {
-        SQL.insert(db, String.format("insert into %s (tick) values (%d)",
-                TAG,
-                tick));
-        things.forEach(t -> t.insert(db, id, WorldState::dbToField));
+    private void addThings(List<Thing> things) {
     }
 
     /**
@@ -97,7 +110,19 @@ public class WorldState extends MyJSON {
      * @throws SQLException
      */
     public void dbToField(ResultSet rs) throws SQLException {
-        tick = ((ResultSet) rs).getLong(1);
+        id = ((ResultSet) rs).getLong(1);
+        tick = ((ResultSet) rs).getLong(2);
+    }
+
+    private void insert(Connection db) throws SQLException {
+        String q = String.format("insert into %s (tick) values (%d)",
+                TAG,
+//                id,
+                tick);
+
+        SQL.insert(db, q, this::dbToField);
+
+        Thing.insert(db, id, things);
     }
 
     private void unitTest() {
@@ -122,5 +147,7 @@ public class WorldState extends MyJSON {
     }
 
 
-
+    public Object getID() {
+        return id;
+    }
 }

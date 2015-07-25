@@ -20,9 +20,9 @@ public class GetWorldState extends DBInterface2<WorldState>
 
         StringBuilder sb = new StringBuilder();
         {
-            WorldState r = new WorldState(mDB);
-
-            list.add(r);
+//            WorldState r = new WorldState(mDB);
+//
+//            list.add(r);
         }
 
         return list;
