@@ -3,6 +3,7 @@ package com.company;
 import com.mike.WorldState;
 import com.mike.util.PhysicalObject;
 import com.mike.util.SQL;
+import com.treeish.DBRecord;
 import org.json.JSONObject;
 
 import java.sql.Connection;
@@ -19,27 +20,31 @@ import java.util.List;
  *      ownerID INTEGER,
  *      born INTEGER
  *  );
+
+ *  CREATE TABLE Thing (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ownerID INTEGER, born INTEGER);
  */
-public class Thing {
+public class Thing extends DBRecord {
     static private final String TAG = Thing.class.getSimpleName();
     static private final String tableName = "Thing";
 
     private long born = 0;
     private PhysicalObject phyisical;
 
-    static public List<Thing> defaultThings(long ownerID) {
+    static public List<Thing> defaultThings() {
         List<Thing> list = new ArrayList<>();
 //        list.sort();
-        list.add(new Thing(ownerID));
+        list.add(new Thing());
         return list;
     }
 
-    public Thing (long ownerID) {
+    public Thing () {
+        super(SQL.DB, "Thing");
         born = WorldState.getTick ();
 
         setPhysics(0, 0, 0, 0);
     }
     public Thing (ResultSet rs) throws SQLException {
+        super(SQL.DB, "Thing");
         dbToField(rs);
     }
 
