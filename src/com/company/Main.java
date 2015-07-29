@@ -1,8 +1,5 @@
 package com.company;
 
-import com.mike.GetWorldState;
-import com.mike.WorldState;
-import com.mike.lambda1;
 import com.mike.util.SQL;
 import com.treeish.*;
 
@@ -42,7 +39,9 @@ public class Main {
             TreeNode<DBRecord> treeRoot = null;
             try {
                 if (World.exists("World", id)) {
-                    treeRoot = new TreeNode<DBRecord>(World.load("World", id));
+                    DBRecord w = World.load("World", id);
+                    treeRoot = new TreeNode<DBRecord>(w);
+                    w.loadChildren(treeRoot);   // recursively
                 }
                 else {
                     // build tree one-time
@@ -53,7 +52,14 @@ public class Main {
                     }
 
                     Iterator<TreeNode<DBRecord>> iter = treeRoot.iterator();
-                    iter.forEachRemaining(t -> t.data.update());
+                    iter.forEachRemaining(t -> {
+                        try {
+                            t.data.update();
+                        }
+                        catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    });
                 }
             } catch (SQLException e) {
                 e.printStackTrace();

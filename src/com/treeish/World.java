@@ -44,5 +44,4 @@ public class World extends DBRecord {
         return (World) SQL.readLast(db, tableName);
     }
 
-
 }

@@ -1,9 +1,11 @@
 package com.mike.util;
 
+import com.company.Thing;
 import com.mike.WorldState;
 import com.treeish.DBRecord;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -62,17 +64,38 @@ public class SQL {
         }
     }
 
-    public static void update(Object tableName, Object colName, Object value) throws SQLException {
+    public static void update(Object tableName, List<String> colNames, List<String> values) throws SQLException {
         PreparedStatement s = null;
         try {
-            String q = String.format("update %s set ( %s = %s, ...)", tableName, colName, value);
+            String q = String.format("update %s set ( ", tableName);
+            for (int i = 0; i < colNames.size(); /* */) {
+                q = q + String.format("%s = %s", colNames.get(i), values.get(i));
+                if (++i < colNames.size())
+                    q = q + ", ";
+                q = q + " );";
+            }
             s = DB.prepareStatement(q);
             s.executeUpdate();
             s.close();
         } finally {
             cleanup(s);
         }
+    }
 
+    public static List<DBRecord> loadThings(Connection db, String q) throws SQLException {
+        List<DBRecord> list = new ArrayList<>();
+        PreparedStatement s = null;
+        try {
+            s = DB.prepareStatement(q);
+            ResultSet rs = s.executeQuery();
+            while (rs.next()) {
+                list.add(new Thing(rs));
+            }
+            s.close();
+        } finally {
+            cleanup(s);
+        }
+        return list;
     }
 
     /**
@@ -171,5 +194,21 @@ public class SQL {
 //        throw new IllegalStateException(String.format("Failed to read last record from table %s", tableName));
     }
 
+    static public List<DBRecord> load(Connection db, String q, DBRecord.Who who) throws SQLException {
+        List<DBRecord> list = new ArrayList<>();
+        PreparedStatement s = null;
+        try {
+            s = SQL.DB.prepareStatement(q);
+            ResultSet rs = s.executeQuery();
+            while (rs.next()) {
+                DBRecord x = DBRecord.factory(who, rs);
+                list.add(x);
+            }
+            s.close();
+        } finally {
+            SQL.cleanup(s);
+        }
+        return list;
+    }
 
 }

@@ -23,7 +23,9 @@ import java.util.List;
 
  *  CREATE TABLE Thing (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ownerID INTEGER, born INTEGER);
  */
-public class Thing extends DBRecord {
+public class Thing
+        extends DBRecord
+{
     static private final String TAG = Thing.class.getSimpleName();
     static private final String tableName = "Thing";
 
@@ -108,4 +110,5 @@ public class Thing extends DBRecord {
                 t.insert(db, parentID, t::dbToField);
             }
     }
+
 }

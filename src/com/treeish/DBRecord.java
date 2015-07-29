@@ -1,19 +1,22 @@
 package com.treeish;
 
+import com.company.Thing;
 import com.mike.util.SQL;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by mike on 7/24/2015.
  */
-public class DBRecord<T> {
+public abstract class DBRecord<T>
+{
     private Connection db;
     String tableName = "";
     long rowID;
-
 
     static public boolean exists (String tableName, long id) throws SQLException {
         // probe table for record
@@ -36,18 +39,51 @@ public class DBRecord<T> {
         //we're abstract don't go into the DB
     }
 
-    public void update () {
-        SQL.update (tableName, colName, value);
+    protected void prepareForUpdate (List<String> colName, List<String> value) {
+        // we don't have any
+    }
+    public void update() throws SQLException {
+        List<String> colNames = new ArrayList<String>();
+        List<String> values = new ArrayList<String>();
+        prepareForUpdate(colNames, values);
+        SQL.update (tableName, colNames, values);
     }
 
     public void delete () {
     }
 
-    public enum Who { World };
+    private List<? extends DBRecord> load(Who who) throws SQLException {
+        // find our children
+        String q = String.format("select * from %s where ( ownerID = %d)", who.toString(), rowID);
+        return SQL.load(SQL.DB, q, who);
+    }
+
+    public void loadChildren(TreeNode<DBRecord> parent) throws SQLException {
+        // do things
+        List<? extends DBRecord> a = load(Who.Thing);
+        for(DBRecord r : a) {
+            TreeNode<DBRecord> child = parent.addChild(r);
+            r.loadChildren(child);
+        }
+    }
+
+    public static DBRecord factory(Who who, ResultSet rs) throws SQLException {
+        if (who.equals("World"))
+            return new World(rs);
+        if (who.equals("Thing"))
+            return new Thing(rs);
+
+        return null;
+    }
+
+
+    public enum Who {Thing, World };
 
     public static DBRecord factory(Connection db, String tableName, ResultSet rs) throws SQLException {
         if (tableName.equals("World"))
             return new World(rs);
+        if (tableName.equals("Thing"))
+            return new Thing(rs);
 
         return null;
     }
