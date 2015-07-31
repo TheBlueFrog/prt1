@@ -60,11 +60,6 @@ public abstract class DBRecord<T>
     }
 
 
-    where is the tree linkage info in the DB? better?
-    why a db?
-    just read/write to a JSON file
-
-
     public void setRowID(long rowID) {
 
 
@@ -93,10 +88,10 @@ public abstract class DBRecord<T>
     }
 
     public static DBRecord factory(Who who, ResultSet rs) throws SQLException {
-        if (who.equals("World"))
-            return new World(rs);
-        if (who.equals("Thing"))
-            return new Thing(rs);
+//        if (who.equals("World"))
+//            return new World(rs);
+//        if (who.equals("Thing"))
+//            return new Thing(rs);
 
         return null;
     }
@@ -109,10 +104,10 @@ public abstract class DBRecord<T>
     public enum Who {Thing, World };
 
     public static DBRecord factory(Connection db, String tableName, ResultSet rs) throws SQLException {
-        if (tableName.equals("World"))
-            return new World(rs);
-        if (tableName.equals("Thing"))
-            return new Thing(rs);
+//        if (tableName.equals("World"))
+//            return new World(rs);
+//        if (tableName.equals("Thing"))
+//            return new Thing(rs);
 
         return null;
     }

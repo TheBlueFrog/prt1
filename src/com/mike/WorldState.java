@@ -122,7 +122,7 @@ public class WorldState extends MyJSON {
 
         SQL.insert(db, q, this::dbToField);
 
-        Thing.insert(db, id, things);
+//        Thing.insert(db, id, things);
     }
 
     private void unitTest() {

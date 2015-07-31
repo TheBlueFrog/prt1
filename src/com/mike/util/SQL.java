@@ -92,9 +92,9 @@ public class SQL {
         try {
             s = DB.prepareStatement(q);
             ResultSet rs = s.executeQuery();
-            while (rs.next()) {
-                list.add(new Thing(rs));
-            }
+//            while (rs.next()) {
+//                list.add(new Thing(rs));
+//            }
             s.close();
         } finally {
             cleanup(s);

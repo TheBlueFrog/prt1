@@ -24,13 +24,18 @@ public class PhysicalObject {
         fromJSON(j);
     }
 
-    public void fromJSON(JSONObject j) {
+    public void fromJSON(JSONObject parent) {
+        JSONObject j = parent.getJSONObject("physics");
+
         position = j.getDouble("position");
         velocity = j.getDouble("velocity");
         acceleration = j.getDouble("acceleration");
         mass = j.getDouble("mass");
     }
-    public void toJSON(JSONObject j) {
+    public void toJSON(JSONObject parent) {
+        JSONObject j = new JSONObject();
+        parent.put("physics", j);
+
         j.put("position", position);
         j.put("velocity", velocity);
         j.put("acceleration", acceleration);
