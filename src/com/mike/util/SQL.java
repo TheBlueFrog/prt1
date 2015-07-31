@@ -26,12 +26,15 @@ public class SQL {
             }
     }
 
-    public static void insert(Connection db, String q) throws SQLException {
+    public static long insert(Connection db, String q) throws SQLException {
         PreparedStatement s = null;
         try {
             s = db.prepareStatement(q);
-            s.executeUpdate();
+            s.execute();
+            ResultSet rs = s.getGeneratedKeys();
+            long rowID = rs.getInt("last_insert_rowid()");
             s.close();
+            return rowID;
 
 //            updateRowID (db, );
         } finally {
@@ -67,12 +70,13 @@ public class SQL {
     public static void update(Object tableName, List<String> colNames, List<String> values) throws SQLException {
         PreparedStatement s = null;
         try {
-            String q = String.format("update %s set ( ", tableName);
+            String q = String.format("update %s set ", tableName);
             for (int i = 0; i < colNames.size(); /* */) {
                 q = q + String.format("%s = %s", colNames.get(i), values.get(i));
                 if (++i < colNames.size())
                     q = q + ", ";
-                q = q + " );";
+                else
+                    q = q + ";";
             }
             s = DB.prepareStatement(q);
             s.executeUpdate();
@@ -187,6 +191,21 @@ public class SQL {
                 return DBRecord.factory(SQL.DB, tableName, rs);
             }
             return null;
+        } finally {
+            SQL.cleanup(s);
+        }
+
+//        throw new IllegalStateException(String.format("Failed to read last record from table %s", tableName));
+    }
+
+    public static boolean tableHasRow(Connection db, String tableName, long id) throws SQLException {
+        PreparedStatement s = null;
+        try {
+            String q = String.format("select _id from %s",
+                    tableName);
+            s = db.prepareStatement(q);
+            ResultSet rs = s.executeQuery();
+            return rs.next();
         } finally {
             SQL.cleanup(s);
         }

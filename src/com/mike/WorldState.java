@@ -29,7 +29,7 @@ public class WorldState extends MyJSON {
 
     private static WorldState ourself = null;
     public static long getTick () {
-        return ourself.tick;
+        return ourself == null ? 0 : ourself.tick;
     }
     // db record ID
     private long id = 0;

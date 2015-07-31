@@ -4,6 +4,7 @@ import com.mike.WorldState;
 import com.mike.util.PhysicalObject;
 import com.mike.util.SQL;
 import com.treeish.DBRecord;
+import com.treeish.TreeNode;
 import org.json.JSONObject;
 
 import java.sql.Connection;
@@ -17,7 +18,7 @@ import java.util.List;
  * <p>
  *  CREATE TABLE Thing
  *      (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
- *      ownerID INTEGER,
+ *      parent INTEGER,
  *      born INTEGER
  *  );
 
@@ -32,18 +33,25 @@ public class Thing
     private long born = 0;
     private PhysicalObject phyisical;
 
-    static public List<Thing> defaultThings() {
+    static public List<Thing> defaultThings(TreeNode<DBRecord> parent) throws SQLException {
         List<Thing> list = new ArrayList<>();
 //        list.sort();
-        list.add(new Thing());
+        list.add(new Thing(parent));
         return list;
     }
 
-    public Thing () {
+    public Thing (TreeNode<DBRecord> parent) throws SQLException {
         super(SQL.DB, "Thing");
         born = WorldState.getTick ();
 
         setPhysics(0, 0, 0, 0);
+
+        String q = String.format("insert into %s (parent, born) values (%d, %d)",
+                tableName,
+                parent.data.getRowID(),
+                born);
+
+        this.rowID = SQL.insert(SQL.DB, q);
     }
     public Thing (ResultSet rs) throws SQLException {
         super(SQL.DB, "Thing");
@@ -110,5 +118,14 @@ public class Thing
                 t.insert(db, parentID, t::dbToField);
             }
     }
+
+    @Override
+    protected void getData(List colNames, List values) {
+        super.getData(colNames, values);
+
+        colNames.add("born");
+        values.add(Long.toString(born));
+    }
+
 
 }

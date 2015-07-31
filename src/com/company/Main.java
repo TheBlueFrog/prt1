@@ -5,7 +5,6 @@ import com.treeish.*;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class Main {
@@ -15,60 +14,21 @@ public class Main {
     public static void main(String[] args) {
 
         {
-            long id = 3;
+            long id = 3;    // rowID of the current world
 
-            {
-                TreeNode<Fred> r = null;
-                r = new TreeNode<Fred>(new Fred(3.14));
-                System.out.println(String.format("%f", r.data.v));
-
-                r.addChild(new Fred(2.1));
-                System.out.println(String.format("%f", r.children.get(0).data.v));
-
-            }
-
-            String fname = "fred.db";
-            SQL.dbfname = "data/fred.db";
-            try {
-                SQL.init ();
-            }
-            catch (ClassNotFoundException | SQLException e) {
-                e.printStackTrace();
-            }
-
-            TreeNode<DBRecord> treeRoot = null;
-            try {
-                if (World.exists("World", id)) {
-                    DBRecord w = World.load("World", id);
-                    treeRoot = new TreeNode<DBRecord>(w);
-                    w.loadChildren(treeRoot);   // recursively
+            { // setup DB
+                String fname = "fred.db";
+                SQL.dbfname = "data/fred.db";
+                try {
+                    SQL.init();
+                } catch (ClassNotFoundException | SQLException e) {
+                    e.printStackTrace();
                 }
-                else {
-                    // build tree one-time
-                    treeRoot = new TreeNode<DBRecord>(new World(SQL.DB, "World"));
-
-                    for (Thing t : Thing.defaultThings()) {
-                        treeRoot.addChild(t);
-                    }
-
-                    Iterator<TreeNode<DBRecord>> iter = treeRoot.iterator();
-                    iter.forEachRemaining(t -> {
-                        try {
-                            t.data.update();
-                        }
-                        catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                    });
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
+
+            TreeNode<DBRecord> treeRoot = World.init (id);
 
             System.out.println(String.format("%s", treeRoot.data.toString()));
-
-
-
 
 //            Comparable<DBRecord> searchCriteria;
 //            searchCriteria = new Comparable<DBRecord>() {
