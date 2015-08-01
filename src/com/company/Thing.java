@@ -4,6 +4,7 @@ import com.mike.WorldState;
 import com.mike.util.PhysicalObject;
 import com.treeish.TreeData;
 import com.treeish.TreeNode;
+import com.treeish.World;
 import org.json.JSONObject;
 
 import java.sql.SQLException;
@@ -18,6 +19,7 @@ public class Thing extends TreeData {
 
     private long born = 0;
     private PhysicalObject physical;
+    private Smarts smarts;
 
     static public List<Thing> defaultThings(TreeNode<TreeData> parent) throws SQLException {
         List<Thing> list = new ArrayList<>();
@@ -31,11 +33,13 @@ public class Thing extends TreeData {
 
         if (input == null) {
             born = WorldState.getTick();
-            setPhysics(0, 0, 0, 0);
+            setPhysics(0, 0, 0, 1.0);
         }
         else {
             born = input.getLong("born");
-            setPhysics(0, 0, 0, 0);// read it
+            physical = new PhysicalObject(0, 0, 0, 0);
+            physical.fromJSON(input);
+//            setPhysics(0, 0, 0, 1.0);// read it
         }
     }
 
@@ -46,10 +50,16 @@ public class Thing extends TreeData {
     private void setPhysics(double position, double velocity, double acceleration, double mass) {
         physical = new PhysicalObject(position, velocity, acceleration, mass);
     }
+    public PhysicalObject getPhysics () {
+        return physical;
+    }
 
     public void tick() {
+        smarts.tick();
+        double acceleration = ((World)Main.treeRoot.data).getTick() == 4 ? 11.1 : 0;
+
         try {
-            physical.integrate(1, 11.1);
+            physical.integrate(1, acceleration);
         }
         catch (Exception e) {
             e.printStackTrace();

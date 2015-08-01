@@ -11,7 +11,7 @@ import java.util.List;
 
 public class Main {
 
-    static TreeNode<TreeData> treeRoot = null;
+    static public TreeNode<TreeData> treeRoot = null;
 
     public static void main(String[] args) {
 
@@ -29,7 +29,7 @@ public class Main {
 //            }
 
             try {
-                treeRoot = World.init (new File("data/a.json"));
+                treeRoot = World.init (new File("data/b.json"));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -38,8 +38,13 @@ public class Main {
 
         System.out.println("Finished init, start ticking");
 
-        for (int i = 0; i  < 10; ++i)
+        for (int i = 0; i  < 10; ++i) {
+            System.out.print(String.format("%d: ", ((World) treeRoot.data).getTick()));
+
             ((World) treeRoot.data).tick();
+
+//            System.out.println("");
+        }
 
         System.out.println("Finished");
     }
